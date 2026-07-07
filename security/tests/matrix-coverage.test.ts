@@ -15,7 +15,8 @@ import { describe, expect, it } from 'vitest';
 
 // §4 milestone mapping — uncomment each milestone's rows when it lands.
 const LANDED_ROWS: string[] = [
-  // M1: 'A-01', 'A-02', 'A-05', 'A-08', 'A-09',
+  // M1
+  'A-01', 'A-02', 'A-05', 'A-08', 'A-09',
   // M2: 'T-01'..'T-11', 'A-03', 'A-04', 'A-10', 'H-01', 'H-02',
   // M3: 'P-01'..'P-06', 'S-01'..'S-05', 'S-07', 'L-09',
   // M4: 'L-01'..'L-08', 'L-10',

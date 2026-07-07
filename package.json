@@ -1,12 +1,23 @@
 {
   "name": "krmx-hub",
   "private": true,
+  "packageManager": "pnpm@9.15.4",
   "engines": { "node": ">=20" },
   "scripts": {
     "db:up": "docker compose up -d",
+    "db:migrate": "pnpm --filter hub db:migrate",
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "test:security": "pnpm --filter security test"
+    "test:security": "pnpm --filter security test",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "human-id": "4.1.3"
+    }
   }
 }

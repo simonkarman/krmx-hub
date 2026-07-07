@@ -8,9 +8,12 @@
     "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@hub/game-server-sdk": "workspace:*",
+    "@hub/protocol": "workspace:*",
     "@playwright/test": "^1.49.0",
     "@types/node": "^20.17.0",
     "@types/pg": "^8.11.0",
+    "jose": "^5.9.0",
     "pg": "^8.13.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

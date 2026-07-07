@@ -1,5 +1,5 @@
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,6 +32,10 @@ export async function setup(): Promise<void> {
       AUTH_SECRET: 'security-test-secret',
       AUTH_URL: HUB_URL,
       AUTH_TRUST_HOST: 'true',
+      HUB_URL,
+      // Fixture keypair (SECURITY-TEST-PLAN §3) so tests can craft tokens
+      // signed with the same key the hub uses.
+      TICKET_PRIVATE_KEY: readFileSync(path.join(securityRoot, 'fixtures', 'ticket-signing-key.pem'), 'utf8'),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

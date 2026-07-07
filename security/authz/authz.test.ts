@@ -2,7 +2,15 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { AuthzError, requireApproved } from '../../apps/hub/src/lib/authz';
 import type { Participant } from '../../apps/hub/src/lib/participants';
 import { pool } from '../helpers/db';
-import { api, cleanupTestData, createSessionCookie, HUB_URL, seedParticipant, testEmail } from '../helpers/hub';
+import {
+  api,
+  cleanupTestData,
+  createSessionCookie,
+  HUB_URL,
+  seedParticipant,
+  seedPlayableInstance,
+  testEmail,
+} from '../helpers/hub';
 
 afterAll(async () => {
   await cleanupTestData();
@@ -42,6 +50,13 @@ describe('A — hub API authorization', () => {
     // sanity: the same gate passes an approved participant
     await seedParticipant(email, 'approved');
     expect(requireApproved(await loadParticipant(email)).email).toBe(email);
+
+    // the real ticket endpoint (M2): pending user who IS a seated player still gets 403
+    const pendingPlayer = testEmail('pending-player');
+    await seedParticipant(pendingPlayer, 'pending');
+    const instanceId = await seedPlayableInstance({ playerEmail: pendingPlayer });
+    const cookie = await createSessionCookie(pendingPlayer);
+    expect((await api(`/api/instances/${instanceId}/ticket`, { cookie })).status).toBe(403);
   });
 
   it('A-02 blocked user with a still-live session: any gated route responds 403', async () => {
@@ -62,6 +77,10 @@ describe('A — hub API authorization', () => {
       (await api(`/api/admin/participants/${encodeURIComponent(target)}/credits`, { cookie, body: { amount: 100 } }))
         .status,
     ).toBe(403);
+
+    // ticket minting re-checks live status too (§9.7): blocked seated player gets no ticket
+    const instanceId = await seedPlayableInstance({ playerEmail: email });
+    expect((await api(`/api/instances/${instanceId}/ticket`, { cookie })).status).toBe(403);
   });
 
   it('A-05 non-admin calls approve/roles/grant endpoints directly (bypassing UI): 403 and no side effects', async () => {

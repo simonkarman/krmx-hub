@@ -31,8 +31,8 @@ sandboxed iframe + postMessage).
 | M1 | Identity, approval gate, roles, admin dashboard | ✅ done |
 | M2 | Protocol package, ticket minting, JWKS | ✅ done |
 | M3 | Registry, provisioning, instance lifecycle, reaper | ✅ done |
-| M4 | Ledger (holds, settlement, conservation) | ⬜ next |
-| M5 | Play end-to-end (`<PlayFrame>`, frontend SDK, tictactoe) | ⬜ |
+| M4 | Ledger (holds, settlement, conservation) | ✅ done |
+| M5 | Play end-to-end (`<PlayFrame>`, frontend SDK, tictactoe) | ⬜ next |
 | M6 | Phase 1: real cloud (OAuth, Neon, Netlify) | ⬜ |
 | M7 | Phase 2: real provisioner (Cloud Run) | ⬜ |
 

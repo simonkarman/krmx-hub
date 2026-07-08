@@ -32,6 +32,7 @@ export function HostConsole() {
       semver: String(form.get('semver')),
       frontendUrl: String(form.get('frontendUrl')),
       provisionUrl: String(form.get('provisionUrl')),
+      maxPlayers: Number(form.get('maxPlayers') || 2),
     });
     const data = await res.json();
     if (!res.ok) return alert(`Failed: ${data.error ?? res.status}`);
@@ -66,6 +67,7 @@ export function HostConsole() {
         <input name="semver" placeholder="1.0.0" required />{' '}
         <input name="frontendUrl" placeholder="http://localhost:4000" required />{' '}
         <input name="provisionUrl" placeholder="http://localhost:4100/provision" required />{' '}
+        <input name="maxPlayers" type="number" min={1} defaultValue={2} style={{ width: '4em' }} title="max players" />{' '}
         <button type="submit">Add version</button>
       </form>
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { signOut } from '../auth';
-import { getBalance } from '../lib/participants';
+import { getBalance, listLedger } from '../lib/participants';
 import { currentParticipant } from '../lib/session';
 
 function SignOutButton() {
@@ -54,7 +54,7 @@ export default async function HomePage() {
     );
   }
 
-  const balance = await getBalance(participant.email);
+  const [balance, ledger] = await Promise.all([getBalance(participant.email), listLedger(participant.email)]);
   return (
     <main>
       <h1>Krmx Hub</h1>
@@ -62,12 +62,36 @@ export default async function HomePage() {
         Signed in as {participant.email}
         {participant.roles.length > 0 ? ` (${participant.roles.join(', ')})` : ''}.
       </p>
-      <p>Credits: {balance}</p>
-      {participant.roles.includes('admin') ? (
-        <p>
-          <Link href="/admin">Admin dashboard</Link>
-        </p>
+      <p>
+        <strong>Credits: {balance}</strong> (balance is the sum of the ledger below, including active holds)
+      </p>
+      {ledger.length > 0 ? (
+        <table border={1} cellPadding={4}>
+          <thead>
+            <tr>
+              <th>type</th>
+              <th>amount</th>
+              <th>instance</th>
+              <th>when</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ledger.map((entry, i) => (
+              <tr key={i}>
+                <td>{entry.type}</td>
+                <td>{entry.amount > 0 ? `+${entry.amount}` : entry.amount}</td>
+                <td>{entry.instanceId ?? '—'}</td>
+                <td>{entry.createdAt.toISOString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : null}
+      <p>
+        {participant.roles.includes('admin') ? <Link href="/admin">Admin dashboard</Link> : null}
+        {participant.roles.includes('admin') && participant.roles.includes('host') ? ' · ' : ''}
+        {participant.roles.includes('host') ? <Link href="/host">Host console</Link> : null}
+      </p>
       <SignOutButton />
     </main>
   );

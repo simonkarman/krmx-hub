@@ -19,6 +19,7 @@ export interface GameVersion {
   semver: string;
   frontendUrl: string;
   provisionUrl: string;
+  maxPlayers: number;
   status: VersionStatus;
 }
 
@@ -37,6 +38,7 @@ interface VersionRow {
   semver: string;
   frontend_url: string;
   provision_url: string;
+  max_players: number;
   status: VersionStatus;
 }
 
@@ -55,6 +57,7 @@ const toVersion = (r: VersionRow): GameVersion => ({
   semver: r.semver,
   frontendUrl: r.frontend_url,
   provisionUrl: r.provision_url,
+  maxPlayers: r.max_players,
   status: r.status,
 });
 
@@ -109,13 +112,14 @@ export async function createGameVersion(input: {
   semver: string;
   frontendUrl: string;
   provisionUrl: string;
+  maxPlayers?: number;
 }): Promise<GameVersion> {
   // frontend_url is registered here and immutable — there is deliberately no
   // update path for it (§9.1/9.2: the framed origin is fixed at registration).
   const { rows } = await pool.query<VersionRow>(
-    `INSERT INTO game_version (game_id, semver, frontend_url, provision_url)
-     VALUES ($1, $2, $3, $4) RETURNING *`,
-    [input.gameId, input.semver, input.frontendUrl, input.provisionUrl],
+    `INSERT INTO game_version (game_id, semver, frontend_url, provision_url, max_players)
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [input.gameId, input.semver, input.frontendUrl, input.provisionUrl, input.maxPlayers ?? 2],
   );
   return toVersion(rows[0]!);
 }

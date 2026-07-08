@@ -12,6 +12,7 @@ const createSchema = z.object({
   // frontend_url is registered here and becomes immutable (§9.1/9.2).
   frontendUrl: z.string().url(),
   provisionUrl: z.string().url(),
+  maxPlayers: z.number().int().min(1).max(64).optional(),
 });
 
 export async function GET(

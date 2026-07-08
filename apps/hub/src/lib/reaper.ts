@@ -1,4 +1,5 @@
 import { pool } from './db';
+import { cancelInstance } from './ledger';
 
 export const REAPER_HEARTBEAT_INTERVAL_MS = 60_000;
 /** Stale after 3 missed heartbeats (ARCHITECTURE §6.4). */
@@ -11,24 +12,24 @@ declare global {
 /**
  * Cancels instances whose server has gone silent (§6.4). An active instance is
  * stale when its last heartbeat (or, if it never sent one, its creation time)
- * is older than the window. Token revocation is effected by the terminal
- * status — authenticateService returns 401 for finished/cancelled instances
- * (L-09 token/cancel part).
- *
- * TODO(M4): release each reaped instance's entry_hold(s) (hold_release rows),
- * inside the same transaction, to complete L-09 and satisfy invariant §8.
+ * is older than the window. Each stale instance is cancelled through
+ * cancelInstance, which releases its entry holds and (via the terminal status)
+ * revokes its service token — completing L-09.
  */
 export async function reapStaleInstances(now: Date = new Date()): Promise<string[]> {
   const cutoff = new Date(now.getTime() - REAPER_STALE_AFTER_MS);
   const { rows } = await pool.query<{ id: string }>(
-    `UPDATE instance
-       SET status = 'cancelled', ended_at = now()
-     WHERE status IN ('provisioning', 'lobby', 'running')
-       AND COALESCE(last_heartbeat_at, created_at) < $1
-     RETURNING id`,
+    `SELECT id FROM instance
+      WHERE status IN ('provisioning', 'lobby', 'running')
+        AND COALESCE(last_heartbeat_at, created_at) < $1`,
     [cutoff],
   );
-  return rows.map((r) => r.id);
+  const reaped: string[] = [];
+  for (const { id } of rows) {
+    // cancelInstance locks the row and no-ops if it raced another transition.
+    if (await cancelInstance(id)) reaped.push(id);
+  }
+  return reaped;
 }
 
 /** Starts the dev-mode reaper loop (single timer per process). */

@@ -41,6 +41,11 @@ describe('L-09 — reaper on a dead server (token/cancel part; hold release land
       serviceToken: token,
       lastHeartbeatAt: stale,
     });
+    // the creator staked an entry fee that the reaper must refund
+    await pool.query("INSERT INTO ledger (email, instance_id, type, amount) VALUES ($1, $2, 'entry_hold', -10)", [
+      creator,
+      instanceId,
+    ]);
 
     // token works while the instance is alive
     expect((await heartbeat(instanceId, token)).status).toBe(200);
@@ -52,6 +57,14 @@ describe('L-09 — reaper on a dead server (token/cancel part; hold release land
 
     const { rows } = await pool.query<{ status: string }>('SELECT status FROM instance WHERE id = $1', [instanceId]);
     expect(rows[0]!.status).toBe('cancelled');
+
+    // hold released: the fee is refunded exactly once (§8, L-09 completion)
+    const release = await pool.query<{ n: number; s: number }>(
+      "SELECT COUNT(*)::int AS n, COALESCE(SUM(amount),0)::int AS s FROM ledger WHERE instance_id = $1 AND type = 'hold_release'",
+      [instanceId],
+    );
+    expect(release.rows[0]!.n).toBe(1);
+    expect(release.rows[0]!.s).toBe(10);
 
     // token revoked by the terminal status
     expect((await heartbeat(instanceId, token)).status).toBe(401);

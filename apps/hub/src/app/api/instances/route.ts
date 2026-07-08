@@ -6,6 +6,7 @@ import { pool } from '../../../lib/db';
 import { getGame, getWebhookSecret, resolveActiveVersion, resolveActiveVersionBySemver } from '../../../lib/games';
 import { errorResponse, json } from '../../../lib/http';
 import { newInstanceId, newInviteCode } from '../../../lib/ids';
+import { cancelInstance, LedgerError, reserveInstance } from '../../../lib/ledger';
 import { callProvision, ProvisionError } from '../../../lib/provision';
 import { hubIssuer } from '../../../lib/tickets';
 import { currentParticipant } from '../../../lib/session';
@@ -43,17 +44,26 @@ export async function POST(req: Request): Promise<NextResponse> {
     const webhookSecret = await getWebhookSecret(input.gameId);
     if (!webhookSecret) return json({ error: 'game misconfigured' }, 500);
 
-    // TODO(M4): require balance >= game.entryFee and write the creator's
-    // entry_hold in the same transaction as the insert below (§6.1 step 2).
-
     const instanceId = newInstanceId();
     const serviceToken = randomBytes(32).toString('hex');
     const serviceTokenHash = createHash('sha256').update(serviceToken).digest('hex');
-    await pool.query(
-      `INSERT INTO instance (id, game_version_id, created_by, visibility, status, service_token_hash)
-       VALUES ($1, $2, $3, $4, 'provisioning', $5)`,
-      [instanceId, version.id, participant.email, input.visibility ?? 'private', serviceTokenHash],
-    );
+
+    // Balance check + creator seat + entry hold, atomically (§6.1 step 2).
+    try {
+      await reserveInstance({
+        instanceId,
+        gameVersionId: version.id,
+        createdBy: participant.email,
+        visibility: input.visibility ?? 'private',
+        serviceTokenHash,
+        entryFee: game.entryFee,
+      });
+    } catch (error) {
+      if (error instanceof LedgerError && error.code === 'insufficient_balance') {
+        return json({ error: 'insufficient balance for entry fee' }, 402);
+      }
+      throw error;
+    }
 
     let serverUrl: string;
     let framedVersionId = version.id;
@@ -71,13 +81,13 @@ export async function POST(req: Request): Promise<NextResponse> {
         const named = await resolveActiveVersionBySemver(input.gameId, result.version);
         if (!named) {
           // §9.2/§9.1: response named a version the hub does not have active.
-          await cancelInstance(instanceId);
+          await cancelInstance(instanceId); // releases the creator's hold
           return json({ error: 'provision named an unregistered or revoked version' }, 502); // P-04
         }
         framedVersionId = named.id;
       }
     } catch (error) {
-      await cancelInstance(instanceId);
+      await cancelInstance(instanceId); // releases the creator's hold
       if (error instanceof ProvisionError) {
         return json({ error: 'provisioning failed', kind: error.kind }, 502); // P-06 (timeout), transport, response
       }
@@ -97,12 +107,4 @@ export async function POST(req: Request): Promise<NextResponse> {
   } catch (error) {
     return errorResponse(error);
   }
-}
-
-async function cancelInstance(instanceId: string): Promise<void> {
-  // TODO(M4): release the creator's entry_hold here too.
-  await pool.query(
-    "UPDATE instance SET status = 'cancelled', ended_at = now() WHERE id = $1 AND status = 'provisioning'",
-    [instanceId],
-  );
 }

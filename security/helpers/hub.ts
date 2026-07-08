@@ -71,6 +71,7 @@ export async function seedGameAndVersion(
     webhookSecret?: string;
     semver?: string;
     entryFee?: number;
+    maxPlayers?: number;
   } = {},
 ): Promise<{ gameId: string; versionId: number; webhookSecret: string }> {
   await seedParticipant(hostEmail, 'approved', ['host']);
@@ -81,13 +82,14 @@ export async function seedGameAndVersion(
     [gameId, hostEmail, webhookSecret, opts.status ?? 'published', opts.entryFee ?? 0],
   );
   const { rows } = await pool.query<{ id: number }>(
-    `INSERT INTO game_version (game_id, semver, frontend_url, provision_url)
-     VALUES ($1, $2, $3, $4) RETURNING id`,
+    `INSERT INTO game_version (game_id, semver, frontend_url, provision_url, max_players)
+     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
     [
       gameId,
       opts.semver ?? '1.0.0',
       opts.frontendUrl ?? 'http://localhost:4000',
       opts.provisionUrl ?? 'http://localhost:4100/provision',
+      opts.maxPlayers ?? 2,
     ],
   );
   return { gameId, versionId: rows[0]!.id, webhookSecret };

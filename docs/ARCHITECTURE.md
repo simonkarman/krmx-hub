@@ -127,6 +127,8 @@ CREATE TABLE game_version (
   semver        TEXT NOT NULL,
   frontend_url  TEXT NOT NULL,   -- REGISTERED ahead of time; immutable
   provision_url TEXT NOT NULL,
+  max_players   INTEGER NOT NULL DEFAULT 2   -- instance capacity (§6.2)
+                  CHECK (max_players >= 1),
   status        TEXT NOT NULL DEFAULT 'active'
                   CHECK (status IN ('active','deprecated','revoked')),
   UNIQUE (game_id, semver)
@@ -180,8 +182,9 @@ Ledger invariants (test these):
 
 ### 6.1 Provisioning (create instance)
 1. User (approved, balance ≥ entry_fee) POSTs `/api/instances {gameId, versionId?, visibility}`.
-2. Hub inserts instance (`provisioning`), generates service token, writes
-   `entry_hold` for the creator.
+2. Hub inserts instance (`provisioning`), generates service token, seats the
+   creator (`instance_player`, seat 0) and writes their `entry_hold` — all in
+   one transaction with the balance check.
 3. Hub calls the version's `provision_url` with
    `{instanceId, serviceToken, hubUrl}` — request **HMAC-signed** with the
    game's `webhook_secret`: headers `x-hub-timestamp: <unix seconds>` and
@@ -198,8 +201,9 @@ Ledger invariants (test these):
 5. Hub stores `server_url`, sets status `lobby`, returns invite code.
 
 ### 6.2 Join
-`POST /api/instances/:id/join`: verify approved + capacity + balance →
-`entry_hold` + `instance_player` row.
+`POST /api/instances/:id/join`: verify approved + capacity
+(`< game_version.max_players`) + balance → `entry_hold` + `instance_player`
+row, atomically. Idempotent: joining twice yields one hold and one row.
 
 ### 6.3 Play (ticket + iframe)
 1. Hub play page renders `<PlayFrame>` with `src = registered frontend_url + "?instance=<id>"`

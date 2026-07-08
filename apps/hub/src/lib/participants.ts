@@ -124,6 +124,21 @@ export async function getBalance(email: string): Promise<number> {
   return rows[0]?.balance ?? 0;
 }
 
+export interface LedgerEntry {
+  type: string;
+  amount: number;
+  instanceId: string | null;
+  createdAt: Date;
+}
+
+export async function listLedger(email: string, limit = 10): Promise<LedgerEntry[]> {
+  const { rows } = await pool.query<{ type: string; amount: number; instance_id: string | null; created_at: Date }>(
+    'SELECT type, amount, instance_id, created_at FROM ledger WHERE email = $1 ORDER BY id DESC LIMIT $2',
+    [email, limit],
+  );
+  return rows.map((r) => ({ type: r.type, amount: r.amount, instanceId: r.instance_id, createdAt: r.created_at }));
+}
+
 export async function listParticipants(): Promise<ParticipantWithBalance[]> {
   const { rows } = await pool.query<ParticipantRow & { balance: number }>(
     `SELECT p.*, COALESCE(l.balance, 0)::int AS balance

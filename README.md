@@ -33,8 +33,8 @@ sandboxed iframe + postMessage).
 | M3 | Registry, provisioning, instance lifecycle, reaper | ✅ done |
 | M4 | Ledger (holds, settlement, conservation) | ✅ done |
 | M5 | Play end-to-end (`<PlayFrame>`, frontend SDK, tictactoe) | ✅ done |
-| M6 | Phase 1: real cloud (OAuth, Neon, Netlify) | ⬜ next |
-| M7 | Phase 2: real provisioner (Cloud Run) | ⬜ |
+| M6 | Phase 1: real cloud (OAuth, Neon, Netlify) | ✅ done |
+| M7 | Phase 2: real provisioner (Cloud Run) | ⬜ next |
 
 ## Workspace layout
 

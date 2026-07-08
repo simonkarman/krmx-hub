@@ -35,14 +35,15 @@ function ensureBuilds(): void {
 async function seed(client: pg.Client) {
   const domain = 'e2e.local';
   const pattern = `%@${domain}`;
-  // Clean any prior e2e rows (FK order).
-  await client.query('DELETE FROM ledger WHERE email LIKE $1', [pattern]);
-  await client.query(
-    `DELETE FROM instance_player WHERE email LIKE $1
-       OR instance_id IN (SELECT id FROM instance WHERE created_by LIKE $1)`,
-    [pattern],
-  );
-  await client.query('DELETE FROM instance WHERE created_by LIKE $1', [pattern]);
+  // Clean any prior e2e rows (FK order). An e2e instance is one created by an
+  // e2e user OR one whose game version belongs to an e2e game (a non-e2e user
+  // may have created an instance of an e2e game during manual testing).
+  const e2eInstances = `SELECT id FROM instance WHERE created_by LIKE $1
+     OR game_version_id IN (SELECT id FROM game_version WHERE game_id IN (SELECT id FROM game WHERE host_email LIKE $1))`;
+  await client.query(`DELETE FROM ledger WHERE email LIKE $1 OR instance_id IN (${e2eInstances})`, [pattern]);
+  await client.query(`DELETE FROM instance_player WHERE email LIKE $1 OR instance_id IN (${e2eInstances})`, [pattern]);
+  await client.query(`DELETE FROM instance WHERE created_by LIKE $1
+     OR game_version_id IN (SELECT id FROM game_version WHERE game_id IN (SELECT id FROM game WHERE host_email LIKE $1))`, [pattern]);
   await client.query('DELETE FROM game_version WHERE game_id IN (SELECT id FROM game WHERE host_email LIKE $1)', [pattern]);
   await client.query('DELETE FROM game WHERE host_email LIKE $1', [pattern]);
   await client.query('DELETE FROM sessions s USING users u WHERE s."userId" = u.id AND u.email LIKE $1', [pattern]);

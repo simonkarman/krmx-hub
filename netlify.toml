@@ -1,0 +1,25 @@
+# Netlify deploy for the hub (Next.js App Router via Next Runtime v5, M6).
+#
+# The hub is one package in a pnpm workspace, so the site's base directory is
+# apps/hub and the build runs from the repo root to build workspace deps first.
+# @netlify/plugin-nextjs is auto-installed from this file and manages the
+# publish output — do not set `publish` manually.
+#
+# Configure every secret in the Netlify UI (Site settings → Environment
+# variables); the full list and docs are in apps/hub/.env.example:
+#   DATABASE_URL (Neon pooled), AUTH_SECRET, AUTH_URL, HUB_URL,
+#   AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET, AUTH_RESEND_KEY, AUTH_EMAIL_FROM,
+#   TICKET_PRIVATE_KEY, ADMIN_EMAIL, HUB_FRAME_ORIGINS.
+#
+# After the first deploy, run the migrations against Neon once:
+#   DATABASE_URL=<neon-pooled-url> pnpm db:migrate
+
+[build]
+  base = "apps/hub"
+  command = "cd ../.. && pnpm build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

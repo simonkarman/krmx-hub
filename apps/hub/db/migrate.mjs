@@ -8,7 +8,14 @@ import pg from 'pg';
 const migrationsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'migrations');
 const connectionString = process.env.DATABASE_URL ?? 'postgres://hub:hub@localhost:5432/hub';
 
-const client = new pg.Client({ connectionString });
+// Managed Postgres (Neon) needs TLS; local docker Postgres does not.
+const needsSsl = !/sslmode=disable/.test(connectionString) &&
+  (/sslmode=require/.test(connectionString) || !/@(localhost|127\.0\.0\.1)[:/]/.test(connectionString));
+
+const client = new pg.Client({
+  connectionString,
+  ssl: needsSsl ? { rejectUnauthorized: true } : undefined,
+});
 await client.connect();
 try {
   await client.query(`

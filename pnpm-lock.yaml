@@ -20,6 +20,9 @@ importers:
       '@auth/pg-adapter':
         specifier: ^1.7.0
         version: 1.11.2(pg@8.22.0)
+      '@hub/game-server-sdk':
+        specifier: workspace:*
+        version: link:../../packages/game-server-sdk
       '@hub/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
@@ -68,13 +71,33 @@ importers:
         version: 5.9.3
 
   examples/tictactoe/provisioner:
+    dependencies:
+      '@hub/game-server-sdk':
+        specifier: workspace:*
+        version: link:../../../packages/game-server-sdk
+      '@hub/protocol':
+        specifier: workspace:*
+        version: link:../../../packages/protocol
     devDependencies:
+      '@types/node':
+        specifier: ^20.17.0
+        version: 20.19.43
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
 
   examples/tictactoe/server:
+    dependencies:
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
     devDependencies:
+      '@types/node':
+        specifier: ^20.17.0
+        version: 20.19.43
+      '@types/ws':
+        specifier: ^8.5.0
+        version: 8.18.1
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -94,6 +117,9 @@ importers:
         specifier: ^5.9.0
         version: 5.10.0
     devDependencies:
+      '@types/node':
+        specifier: ^20.17.0
+        version: 20.19.43
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -762,6 +788,9 @@ packages:
 
   '@types/react@19.2.17':
     resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@vitest/expect@3.2.7':
     resolution: {integrity: sha512-E8eBXaKibuvH2pSZErOjdVb5vF4PbKYcrnluBTYxEk1l/VhhwZg1kZQsdtjq+CsF5CFydf2Rdkz7jDHKSisi3w==}
@@ -1465,6 +1494,18 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
+  ws@8.21.0:
+    resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
@@ -1992,6 +2033,10 @@ snapshots:
   '@types/react@19.2.17':
     dependencies:
       csstype: 3.2.3
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 20.19.43
 
   '@vitest/expect@3.2.7':
     dependencies:
@@ -2663,6 +2708,8 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  ws@8.21.0: {}
 
   xtend@4.0.2: {}
 

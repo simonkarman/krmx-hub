@@ -33,3 +33,10 @@ export function requireAdmin(participant: Participant | null): Participant {
   if (!p.roles.includes('admin')) throw new AuthzError(403, 'admin role required');
   return p;
 }
+
+/** Host role gates game/version registration (A-06). Ownership is checked per-resource (A-07). */
+export function requireHost(participant: Participant | null): Participant {
+  const p = requireApproved(participant);
+  if (!p.roles.includes('host')) throw new AuthzError(403, 'host role required');
+  return p;
+}

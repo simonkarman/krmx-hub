@@ -53,6 +53,36 @@ export const hubToGameMessageSchema = z.discriminatedUnion('type', [
 ]);
 export type HubToGameMessage = z.infer<typeof hubToGameMessageSchema>;
 
+// Provisioning contract (§6.1). The provision call is HMAC-signed over
+// `timestamp + "." + body` with the game's webhook_secret (§9.14); the
+// sign/verify implementation lives in @hub/game-server-sdk.
+
+export const PROVISION_TIMESTAMP_HEADER = 'x-hub-timestamp';
+export const PROVISION_SIGNATURE_HEADER = 'x-hub-signature';
+/** Hosts reject provision calls outside this ±window (§6.1 step 3; P-02). */
+export const PROVISION_TIMESTAMP_TOLERANCE_SECONDS = 60;
+
+export const provisionRequestSchema = z
+  .object({
+    instanceId: z.string().min(1),
+    serviceToken: z.string().min(1),
+    hubUrl: z.string().min(1),
+  })
+  .strict();
+export type ProvisionRequest = z.infer<typeof provisionRequestSchema>;
+
+/**
+ * Non-strict on purpose: unknown keys (notably `frontendUrl`) are stripped,
+ * so a provision response can NEVER introduce a frontend URL (§9.2; P-03).
+ * `version` may only *name* a version the hub already has registered; the hub
+ * resolves frontend_url from its own registry (§6.1 step 4; P-04).
+ */
+export const provisionResponseSchema = z.object({
+  serverUrl: z.string().min(1), // opaque to the hub
+  version: z.string().min(1).optional(),
+});
+export type ProvisionResponse = z.infer<typeof provisionResponseSchema>;
+
 // Service API shapes (§6.4). Auth: `Authorization: Bearer <service token>`,
 // scoped to exactly one instance (§9.5). Endpoints land in M3/M4.
 

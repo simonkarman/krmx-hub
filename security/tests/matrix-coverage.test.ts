@@ -20,7 +20,11 @@ const LANDED_ROWS: string[] = [
   // M2
   'T-01', 'T-02', 'T-03', 'T-04', 'T-05', 'T-06', 'T-07', 'T-08', 'T-09', 'T-10', 'T-11',
   'A-03', 'A-04', 'A-10', 'H-01', 'H-02',
-  // M3: 'P-01'..'P-06', 'S-01'..'S-05', 'S-07', 'L-09',
+  // M3 (P-05 deferred: conditional on an origin-vetting feature not yet
+  // specified; A-06/A-07 land here since the registry authz is built now).
+  'P-01', 'P-02', 'P-03', 'P-04', 'P-06',
+  'S-01', 'S-02', 'S-03', 'S-04', 'S-05', 'S-07',
+  'L-09', 'A-06', 'A-07',
   // M4: 'L-01'..'L-08', 'L-10',
   // M5: 'F-01'..'F-07', 'S-06', 'H-04',
 ];

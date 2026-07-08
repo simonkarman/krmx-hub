@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.7.0",
+    "@hub/game-server-sdk": "workspace:*",
     "@hub/protocol": "workspace:*",
     "jose": "^5.9.0",
     "next": "^15.1.0",

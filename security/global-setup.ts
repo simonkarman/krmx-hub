@@ -36,6 +36,10 @@ export async function setup(): Promise<void> {
       // Fixture keypair (SECURITY-TEST-PLAN §3) so tests can craft tokens
       // signed with the same key the hub uses.
       TICKET_PRIVATE_KEY: readFileSync(path.join(securityRoot, 'fixtures', 'ticket-signing-key.pem'), 'utf8'),
+      // Keep provision timeouts short (P-06) and stop the auto-reaper from
+      // racing test fixtures (L-09 drives the reaper directly).
+      PROVISION_TIMEOUT_MS: '2500',
+      HUB_DISABLE_REAPER: '1',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

@@ -62,20 +62,45 @@ export async function api(
   });
 }
 
-export async function seedGameAndVersion(hostEmail: string): Promise<{ gameId: string; versionId: number }> {
+export async function seedGameAndVersion(
+  hostEmail: string,
+  opts: {
+    status?: 'draft' | 'published' | 'suspended';
+    provisionUrl?: string;
+    frontendUrl?: string;
+    webhookSecret?: string;
+    semver?: string;
+    entryFee?: number;
+  } = {},
+): Promise<{ gameId: string; versionId: number; webhookSecret: string }> {
   await seedParticipant(hostEmail, 'approved', ['host']);
   const gameId = `game-${randomUUID().slice(0, 8)}`;
-  await pool.query('INSERT INTO game (id, host_email, name, webhook_secret) VALUES ($1, $2, $1, $3)', [
-    gameId,
-    hostEmail,
-    randomBytes(16).toString('hex'),
-  ]);
+  const webhookSecret = opts.webhookSecret ?? randomBytes(16).toString('hex');
+  await pool.query(
+    'INSERT INTO game (id, host_email, name, webhook_secret, status, entry_fee) VALUES ($1, $2, $1, $3, $4, $5)',
+    [gameId, hostEmail, webhookSecret, opts.status ?? 'published', opts.entryFee ?? 0],
+  );
   const { rows } = await pool.query<{ id: number }>(
     `INSERT INTO game_version (game_id, semver, frontend_url, provision_url)
-     VALUES ($1, '1.0.0', 'http://localhost:4000', 'http://localhost:4100') RETURNING id`,
-    [gameId],
+     VALUES ($1, $2, $3, $4) RETURNING id`,
+    [
+      gameId,
+      opts.semver ?? '1.0.0',
+      opts.frontendUrl ?? 'http://localhost:4000',
+      opts.provisionUrl ?? 'http://localhost:4100/provision',
+    ],
   );
-  return { gameId, versionId: rows[0]!.id };
+  return { gameId, versionId: rows[0]!.id, webhookSecret };
+}
+
+export function sha256hex(value: string): string {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+/** A fresh opaque service token and its stored hash. */
+export function newServiceToken(): { token: string; hash: string } {
+  const token = randomBytes(32).toString('hex');
+  return { token, hash: sha256hex(token) };
 }
 
 export async function seedInstance(opts: {
@@ -83,18 +108,24 @@ export async function seedInstance(opts: {
   createdBy: string;
   status?: 'provisioning' | 'lobby' | 'running' | 'finished' | 'cancelled';
   serverUrl?: string | null;
+  /** Plaintext service token to store (hashed). Defaults to a random one. */
+  serviceToken?: string;
+  /** Overrides last_heartbeat_at (e.g. an old time for the reaper). */
+  lastHeartbeatAt?: Date | null;
 }): Promise<string> {
   const id = `inst-${randomUUID().slice(0, 8)}`;
+  const hash = opts.serviceToken ? sha256hex(opts.serviceToken) : newServiceToken().hash;
   await pool.query(
-    `INSERT INTO instance (id, game_version_id, created_by, status, server_url, service_token_hash)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
+    `INSERT INTO instance (id, game_version_id, created_by, status, server_url, service_token_hash, last_heartbeat_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       id,
       opts.versionId,
       opts.createdBy,
       opts.status ?? 'lobby',
       opts.serverUrl === undefined ? 'ws://localhost:8123' : opts.serverUrl,
-      createHash('sha256').update(randomBytes(32)).digest('hex'),
+      hash,
+      opts.lastHeartbeatAt === undefined ? null : opts.lastHeartbeatAt,
     ],
   );
   return id;

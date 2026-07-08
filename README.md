@@ -32,8 +32,8 @@ sandboxed iframe + postMessage).
 | M2 | Protocol package, ticket minting, JWKS | ✅ done |
 | M3 | Registry, provisioning, instance lifecycle, reaper | ✅ done |
 | M4 | Ledger (holds, settlement, conservation) | ✅ done |
-| M5 | Play end-to-end (`<PlayFrame>`, frontend SDK, tictactoe) | ⬜ next |
-| M6 | Phase 1: real cloud (OAuth, Neon, Netlify) | ⬜ |
+| M5 | Play end-to-end (`<PlayFrame>`, frontend SDK, tictactoe) | ✅ done |
+| M6 | Phase 1: real cloud (OAuth, Neon, Netlify) | ⬜ next |
 | M7 | Phase 2: real provisioner (Cloud Run) | ⬜ |
 
 ## Workspace layout

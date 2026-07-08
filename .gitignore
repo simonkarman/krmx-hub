@@ -10,3 +10,10 @@ dist
 coverage
 playwright-report
 test-results
+
+# build/e2e artifacts
+examples/tictactoe/frontend/public/bundle.js
+examples/tictactoe/frontend/public/bundle.js.map
+security/e2e/.seed.json
+security/e2e/.hub.log
+security/e2e/.game.log

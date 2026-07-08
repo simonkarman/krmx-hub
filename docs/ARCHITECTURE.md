@@ -223,7 +223,10 @@ row, atomically. Idempotent: joining twice yields one hold and one row.
   display. Hub is never authoritative for game state.
 - `POST /api/service/instances/:id/results {ranking: [...]}` — hub verifies
   the service token belongs to `:id`, writes payouts, marks `finished`,
-  revokes the token.
+  revokes the token. `ranking` entries are player identities as the game
+  server knows them (the ticket `name`, i.e. the participant username; an email
+  is also accepted); the hub resolves each to a seated participant before
+  settling and rejects any entry that is not a player.
 - **Reaper** (cron/scheduled function): instances in `provisioning|lobby|running`
   with `last_heartbeat_at` older than 3 intervals → `cancelled`, holds
   released, token revoked.

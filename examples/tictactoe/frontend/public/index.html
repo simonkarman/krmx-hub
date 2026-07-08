@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tic-tac-toe</title>
+    <style>
+      body { font-family: system-ui, sans-serif; text-align: center; }
+      .board { display: grid; grid-template-columns: repeat(3, 64px); gap: 4px; justify-content: center; margin: 1rem auto; }
+      .cell { width: 64px; height: 64px; font-size: 32px; }
+      #status { font-weight: bold; min-height: 1.5em; }
+    </style>
+  </head>
+  <body>
+    <h1>Tic-tac-toe</h1>
+    <p id="status">Loading…</p>
+    <div id="app"></div>
+    <script src="bundle.js"></script>
+  </body>
+</html>

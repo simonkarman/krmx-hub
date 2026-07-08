@@ -15,6 +15,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
+  "dependencies": {
+    "@hub/protocol": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.7.0"
   }

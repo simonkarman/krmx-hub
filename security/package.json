@@ -4,12 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run && playwright test",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@hub/game-server-sdk": "workspace:*",
+    "@hub/krmx-adapter": "workspace:*",
     "@hub/protocol": "workspace:*",
+    "@krmx/client": "^0.6.5",
+    "@krmx/server": "^0.6.11",
     "@playwright/test": "^1.49.0",
     "@types/node": "^20.17.0",
     "@types/pg": "^8.11.0",

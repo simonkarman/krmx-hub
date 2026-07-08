@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import { signOut } from '../auth';
+import { listPublishedGames } from '../lib/games';
+import { listInstancesForPlayer } from '../lib/instances';
 import { getBalance, listLedger } from '../lib/participants';
 import { currentParticipant } from '../lib/session';
+import { CreateInstanceButton, JoinByIdForm } from './lobby-actions';
 
 function SignOutButton() {
   return (
@@ -54,7 +57,12 @@ export default async function HomePage() {
     );
   }
 
-  const [balance, ledger] = await Promise.all([getBalance(participant.email), listLedger(participant.email)]);
+  const [balance, ledger, games, myInstances] = await Promise.all([
+    getBalance(participant.email),
+    listLedger(participant.email),
+    listPublishedGames(),
+    listInstancesForPlayer(participant.email),
+  ]);
   return (
     <main>
       <h1>Krmx Hub</h1>
@@ -65,6 +73,37 @@ export default async function HomePage() {
       <p>
         <strong>Credits: {balance}</strong> (balance is the sum of the ledger below, including active holds)
       </p>
+
+      <h2>Play</h2>
+      {games.length === 0 ? <p>No published games yet.</p> : null}
+      <ul>
+        {games.map((game) => (
+          <li key={game.id}>
+            {game.name} (entry fee {game.entryFee}) <CreateInstanceButton gameId={game.id} />
+          </li>
+        ))}
+      </ul>
+      {myInstances.length > 0 ? (
+        <>
+          <h3>Your instances</h3>
+          <ul>
+            {myInstances.map((inst) => (
+              <li key={inst.id}>
+                {inst.gameName} — {inst.status}{' '}
+                {inst.status === 'lobby' || inst.status === 'running' ? (
+                  <Link href={`/play/${inst.id}`}>Play</Link>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      <details>
+        <summary>Join by instance id</summary>
+        <JoinByIdForm />
+      </details>
+
+      <h2>Credit activity</h2>
       {ledger.length > 0 ? (
         <table border={1} cellPadding={4}>
           <thead>

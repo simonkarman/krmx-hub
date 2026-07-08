@@ -11,15 +11,21 @@ export function testEmail(prefix: string): string {
   return `${prefix}-${randomUUID()}@${TEST_EMAIL_DOMAIN}`;
 }
 
+/** A short, Krmx-valid username (starts with a letter, alphanumeric, <32 chars). */
+export function testUsername(prefix = 'u'): string {
+  return `${prefix}${randomBytes(4).toString('hex')}`;
+}
+
 export async function seedParticipant(
   email: string,
   status: 'pending' | 'approved' | 'blocked',
   roles: string[] = [],
+  username?: string,
 ): Promise<void> {
   await pool.query(
-    `INSERT INTO participant (email, status, roles) VALUES ($1, $2, $3)
-     ON CONFLICT (email) DO UPDATE SET status = $2, roles = $3`,
-    [email, status, roles],
+    `INSERT INTO participant (email, status, roles, username) VALUES ($1, $2, $3, $4)
+     ON CONFLICT (email) DO UPDATE SET status = $2, roles = $3, username = COALESCE($4, participant.username)`,
+    [email, status, roles, username ?? null],
   );
 }
 

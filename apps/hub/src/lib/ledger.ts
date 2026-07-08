@@ -236,11 +236,21 @@ async function settleInternal(
       throw new LedgerError('not_settleable', `cannot settle a ${inst.status} instance`); // L-02
     }
 
-    const playerRows = await client.query<{ email: string }>(
-      'SELECT email FROM instance_player WHERE instance_id = $1',
+    // Players are keyed on email in the ledger, but a results ranking arrives
+    // in game usernames (the ticket `name`). Accept either identity and map to
+    // the canonical email.
+    const playerRows = await client.query<{ email: string; username: string | null }>(
+      `SELECT ip.email, p.username
+         FROM instance_player ip JOIN participant p ON p.email = ip.email
+        WHERE ip.instance_id = $1`,
       [instanceId],
     );
     const players = new Set(playerRows.rows.map((r) => r.email));
+    const identityToEmail = new Map<string, string>();
+    for (const row of playerRows.rows) {
+      identityToEmail.set(row.email, row.email);
+      if (row.username) identityToEmail.set(row.username, row.email);
+    }
 
     const potRow = await client.query<{ pot: number }>(
       "SELECT COALESCE(-SUM(amount), 0)::int AS pot FROM ledger WHERE instance_id = $1 AND type = 'entry_hold'",
@@ -250,13 +260,15 @@ async function settleInternal(
 
     let payouts: Payout[];
     if (arg.ranking) {
-      const ranking = arg.ranking;
-      if (ranking.length === 0) throw new LedgerError('invalid_ranking', 'ranking is empty');
-      if (new Set(ranking).size !== ranking.length) throw new LedgerError('invalid_ranking', 'ranking has duplicates');
-      for (const email of ranking) {
-        if (!players.has(email)) throw new LedgerError('invalid_ranking', 'ranking includes a non-player'); // S-06
+      if (arg.ranking.length === 0) throw new LedgerError('invalid_ranking', 'ranking is empty');
+      const resolved: string[] = [];
+      for (const identity of arg.ranking) {
+        const email = identityToEmail.get(identity);
+        if (!email) throw new LedgerError('invalid_ranking', 'ranking includes a non-player'); // S-06
+        resolved.push(email);
       }
-      payouts = computePayouts(pot, ranking);
+      if (new Set(resolved).size !== resolved.length) throw new LedgerError('invalid_ranking', 'ranking has duplicates');
+      payouts = computePayouts(pot, resolved);
     } else {
       payouts = arg.payouts ?? [];
       for (const payout of payouts) {

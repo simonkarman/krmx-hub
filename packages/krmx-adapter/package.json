@@ -15,7 +15,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
+  "dependencies": {
+    "@hub/game-server-sdk": "workspace:*",
+    "@hub/protocol": "workspace:*"
+  },
+  "peerDependencies": {
+    "@krmx/server": "^0.6.11"
+  },
   "devDependencies": {
+    "@krmx/server": "^0.6.11",
     "typescript": "^5.7.0"
   }
 }

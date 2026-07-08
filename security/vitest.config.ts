@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       '@hub/protocol': path.resolve(here, '../packages/protocol/src/index.ts'),
       '@hub/game-server-sdk': path.resolve(here, '../packages/game-server-sdk/src/index.ts'),
+      '@hub/krmx-adapter': path.resolve(here, '../packages/krmx-adapter/src/index.ts'),
     },
   },
   test: {

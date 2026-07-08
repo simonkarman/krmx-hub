@@ -28,6 +28,8 @@ const LANDED_ROWS: string[] = [
   // M4 (S-06 lands with the results endpoint built here)
   'L-01', 'L-02', 'L-03', 'L-04', 'L-05', 'L-06', 'L-07', 'L-08', 'L-10',
   'S-06',
+  // M5 (T-08 already landed in M2 as a unit test; extended end-to-end here)
+  'F-01', 'F-02', 'F-03', 'F-04', 'F-05', 'F-06', 'F-07', 'H-04',
   // M5: 'F-01'..'F-07', 'S-06', 'H-04',
 ];
 

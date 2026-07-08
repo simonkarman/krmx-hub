@@ -8,11 +8,12 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "ws": "^8.18.0"
+    "@hub/game-server-sdk": "workspace:*",
+    "@hub/krmx-adapter": "workspace:*",
+    "@krmx/server": "^0.6.11"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
-    "@types/ws": "^8.5.0",
     "typescript": "^5.7.0"
   }
 }

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>evil</title>
+  </head>
+  <body>
+    <h1>evil origin</h1>
+    <script>
+      // Record every message this page receives — used to prove the hub never
+      // delivers a ticket (or any hub:init) to an unregistered origin (F-01/F-02).
+      window.__received = [];
+      window.addEventListener('message', (e) => {
+        window.__received.push({ origin: e.origin, data: e.data });
+      });
+
+      // Open the hub in a popup (shares the browser context's session cookie)
+      // and spam it with game→hub messages from THIS (unregistered) origin.
+      window.openHubAndAttack = function (hubUrl) {
+        const w = window.open(hubUrl, 'hubpopup', 'width=500,height=500');
+        window.__popup = w;
+        let n = 0;
+        const timer = setInterval(() => {
+          if (!w || w.closed || n++ > 50) return clearInterval(timer);
+          try { w.postMessage({ type: 'hub:ready' }, '*'); } catch {}
+          try { w.postMessage({ type: 'hub:request-ticket' }, '*'); } catch {}
+        }, 80);
+        return true;
+      };
+    </script>
+  </body>
+</html>

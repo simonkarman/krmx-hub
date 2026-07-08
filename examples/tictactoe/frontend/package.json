@@ -4,9 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json && node build.mjs",
+    "start": "node serve.mjs"
+  },
+  "dependencies": {
+    "@hub/game-frontend-sdk": "workspace:*",
+    "@krmx/client": "^0.6.5"
   },
   "devDependencies": {
+    "@types/node": "^20.17.0",
+    "esbuild": "^0.24.0",
     "typescript": "^5.7.0"
   }
 }
